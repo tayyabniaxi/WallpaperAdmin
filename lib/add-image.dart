@@ -85,6 +85,7 @@ class _UploadImagePageState extends State<UploadImagePage> {
 
   File? _image;
   final _nameController = TextEditingController();
+  final _desController = TextEditingController();
   bool _isUploading = false;
   bool isPro=false;
   
@@ -132,13 +133,13 @@ class _UploadImagePageState extends State<UploadImagePage> {
       if (docSnapshot.exists) {
         await docRef.update({
           'images': FieldValue.arrayUnion([
-            {'url': url, 'key': _nameController.text, 'isPro': isPro}
+            {'url': url, 'key': _nameController.text, 'isPro': isPro,"description":_desController.text}
           ]),
         });
       } else {
         await docRef.set({
           'images': [
-            {'url': url, 'key': _nameController.text,'isPro': isPro}
+            {'url': url, 'key': _nameController.text,'isPro': isPro,"description":_desController.text}
           ],
         });
       }
@@ -152,7 +153,7 @@ class _UploadImagePageState extends State<UploadImagePage> {
         'subcategory': selectedSubCategory,
         'uploadTimestamp':
             Timestamp.now().millisecondsSinceEpoch, // Save timestamp
-            'isPro': isPro
+            'isPro': isPro,"description":_desController.text
       });
 
       setState(() {
@@ -184,6 +185,10 @@ class _UploadImagePageState extends State<UploadImagePage> {
               TextField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Image Name'),
+              ),
+                TextField(
+                controller: _desController,
+                decoration: const InputDecoration(labelText: 'Enter Description'),
               ),
               const SizedBox(height: 16),
               DropdownButton<String>(
