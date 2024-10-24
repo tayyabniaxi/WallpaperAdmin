@@ -1,10 +1,9 @@
 
-// ignore_for_file: no_leading_underscores_for_local_identifiers
+// ignore_for_file: no_leading_underscores_for_local_identifiers, use_build_context_synchronously, prefer_const_constructors, library_private_types_in_public_api
 
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -217,14 +216,20 @@ class _SearchImagePageState extends State<SearchImagePage> {
             return const Center(child: Text('No images found.'));
           }
 
-          return ListView.builder(
+          return ListView.separated(
+             separatorBuilder: (context, index) {
+               return SizedBox(height: 10,);
+             },
             itemCount: images.length,
             itemBuilder: (context, index) {
               return ListTile(
-                leading: Image.network(
-                  images[index]['url'],
-                  width: 50,
-                  fit: BoxFit.cover,
+                leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    images[index]['url'],
+                    width: 50,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 title: Text(images[index]['name']),
                 trailing: Row(

@@ -7,7 +7,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:new_wall_paper_app/image-list.dart';
+import 'package:new_wall_paper_app/upload/image-list.dart';
+import 'package:new_wall_paper_app/views/home_page.dart';
+// import 'package:new_wall_paper_app/image-list.dart';
 
 class UploadImagePage extends StatefulWidget {
   @override
@@ -87,8 +89,7 @@ class _UploadImagePageState extends State<UploadImagePage> {
   final _nameController = TextEditingController();
   final _desController = TextEditingController();
   bool _isUploading = false;
-  bool isPro=false;
-  
+  bool isPro = false;
 
   Future<void> _pickImage() async {
     final pickedFile =
@@ -102,7 +103,7 @@ class _UploadImagePageState extends State<UploadImagePage> {
 
   Future<void> _uploadImage() async {
     if (_image == null ||
-        _nameController.text.isEmpty ||
+        _nameController.text.isEmpty || _desController.text.isEmpty||
         selectedCategory == null ||
         selectedSubCategory == null) {
       Fluttertoast.showToast(msg: 'Please fill all fields and pick an image.');
@@ -133,13 +134,23 @@ class _UploadImagePageState extends State<UploadImagePage> {
       if (docSnapshot.exists) {
         await docRef.update({
           'images': FieldValue.arrayUnion([
-            {'url': url, 'key': _nameController.text, 'isPro': isPro,"description":_desController.text}
+            {
+              'url': url,
+              'key': _nameController.text,
+              'isPro': isPro,
+              "description": _desController.text
+            }
           ]),
         });
       } else {
         await docRef.set({
           'images': [
-            {'url': url, 'key': _nameController.text,'isPro': isPro,"description":_desController.text}
+            {
+              'url': url,
+              'key': _nameController.text,
+              'isPro': isPro,
+              "description": _desController.text
+            }
           ],
         });
       }
@@ -153,7 +164,7 @@ class _UploadImagePageState extends State<UploadImagePage> {
         'subcategory': selectedSubCategory,
         'uploadTimestamp':
             Timestamp.now().millisecondsSinceEpoch, // Save timestamp
-            'isPro': isPro,"description":_desController.text
+        'isPro': isPro, "description": _desController.text
       });
 
       setState(() {
@@ -176,7 +187,21 @@ class _UploadImagePageState extends State<UploadImagePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Home')),
+      appBar: AppBar(title: const Text('Home'),
+      
+      actions: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child  : ElevatedButton(onPressed: (){
+              Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          // builder: (context) => const SearchImagePage()),
+                          builder: (context) =>  HomePage()),
+                    );
+          }, child: Text("List")))
+      ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -186,12 +211,14 @@ class _UploadImagePageState extends State<UploadImagePage> {
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Image Name'),
               ),
-                TextField(
+              TextField(
                 controller: _desController,
-                decoration: const InputDecoration(labelText: 'Enter Description'),
+                decoration:
+                    const InputDecoration(labelText: 'Enter Description'),
               ),
               const SizedBox(height: 16),
               DropdownButton<String>(
+                isExpanded: true,
                 hint: const Text('Select Category'),
                 value: selectedCategory,
                 onChanged: (newValue) {
@@ -207,9 +234,10 @@ class _UploadImagePageState extends State<UploadImagePage> {
                   );
                 }).toList(),
               ),
-              if (selectedCategory !=
-                  null)
+              const SizedBox(height: 10,),
+              if (selectedCategory != null)
                 DropdownButton<String>(
+                  isExpanded: true,
                   hint: const Text('Select Subcategory'),
                   value: selectedSubCategory,
                   onChanged: (newValue) {
@@ -225,7 +253,7 @@ class _UploadImagePageState extends State<UploadImagePage> {
                   }).toList(),
                 ),
               const SizedBox(height: 16),
-                const SizedBox(height: 16),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
@@ -258,33 +286,37 @@ class _UploadImagePageState extends State<UploadImagePage> {
                   ),
                 ],
               ),
-              ElevatedButton(
-                onPressed: _pickImage,
-                child: const Text('Pick Image'),
+              SizedBox(
+                height: 10,
               ),
+          _image == null?    InkWell(
+                onTap:  _pickImage,
+                child: Container(
+                    height: MediaQuery.of(context).size.height * 0.2,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.upload,
+                      size: MediaQuery.of(context).size.height * 0.1,
+                    )),
+              ):Container(),
               const SizedBox(height: 16),
-_image != null ? Image.file(_image!) : Container(),
-const SizedBox(height: 16),
-
-
-ElevatedButton(
-  onPressed: _isUploading
-      ? null
-      : _uploadImage,
-  child: const Text('Upload Image'),
-),
-if (_isUploading)
-  const CircularProgressIndicator(),
-const SizedBox(height: 16),
-ElevatedButton(
-  onPressed: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SearchImagePage()),
-    );
-  },
-  child: const Text('Search Page'),
-),
+              _image != null ? Container(
+                height: MediaQuery.of(context).size.height*0.2,
+                width: double.infinity,
+                child: Image.file(_image!, fit: BoxFit.contain,)) : Container(),
+              const SizedBox(height: 16),
+            ElevatedButton(
+              
+                onPressed:   selectedCategory==null || selectedSubCategory==null ||  _image == null? null: _isUploading ? null : _uploadImage,
+                child: const Text('Upload Image'),
+              ),
+              if (_isUploading) const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+             
             ],
           ),
         ),
