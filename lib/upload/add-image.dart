@@ -7,6 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:new_wall_paper_app/upload/add-home-content-data.dart';
 import 'package:new_wall_paper_app/upload/image-list.dart';
 import 'package:new_wall_paper_app/views/home_page.dart';
 // import 'package:new_wall_paper_app/image-list.dart';
@@ -27,7 +28,6 @@ class _UploadImagePageState extends State<UploadImagePage> {
     'Sports',
     'Art',
     'Food',
-    'Qaiser',
   ];
 
   final Map<String, List<String>> subCategories = {
@@ -52,7 +52,7 @@ class _UploadImagePageState extends State<UploadImagePage> {
       'Pets',
       'Horses'
     ],
-    'Qaiser': ['Farooq'],
+   
     'Sports': [
       'Football',
       'Basketball',
@@ -115,15 +115,12 @@ class _UploadImagePageState extends State<UploadImagePage> {
     });
 
     try {
-      // Upload image to Firebase Storage with category and subcategory
       final storageRef = FirebaseStorage.instance.ref().child(
           'categories/$selectedCategory/$selectedSubCategory/${_nameController.text}.jpg');
       await storageRef.putFile(_image!);
 
-      // Get the image URL
       final url = await storageRef.getDownloadURL();
 
-      // Save image data in Firestore under category and subcategory
       final docRef = FirebaseFirestore.instance
           .collection('categories')
           .doc(selectedCategory)
@@ -138,7 +135,9 @@ class _UploadImagePageState extends State<UploadImagePage> {
               'url': url,
               'key': _nameController.text,
               'isPro': isPro,
-              "description": _desController.text
+              "description": _desController.text,
+               'uploadTimestamp':
+            Timestamp.now().millisecondsSinceEpoch,
             }
           ]),
         });
@@ -149,7 +148,9 @@ class _UploadImagePageState extends State<UploadImagePage> {
               'url': url,
               'key': _nameController.text,
               'isPro': isPro,
-              "description": _desController.text
+              "description": _desController.text,
+                'uploadTimestamp':
+            Timestamp.now().millisecondsSinceEpoch,
             }
           ],
         });
@@ -187,9 +188,18 @@ class _UploadImagePageState extends State<UploadImagePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        
+        backgroundColor: Colors.blue,
+        child: Icon(Icons.add,size: 45,color: Colors.white,),
+
+        onPressed: (){
+         Navigator.push(context, MaterialPageRoute(builder: (context)=>AddHomeContentDataScreen()));
+      }),
       appBar: AppBar(title: const Text('Home'),
       
       actions: [
+      
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child  : ElevatedButton(onPressed: (){
@@ -209,30 +219,38 @@ class _UploadImagePageState extends State<UploadImagePage> {
             children: [
               TextField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Image Name'),
+                decoration: const InputDecoration(labelText: 'Image Name',
+                  border: OutlineInputBorder(),
+                ),
               ),
+              SizedBox(height: 10,),
               TextField(
                 controller: _desController,
                 decoration:
-                    const InputDecoration(labelText: 'Enter Description'),
+                    const InputDecoration(labelText: 'Enter Description',   border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
               ),
               const SizedBox(height: 16),
-              DropdownButton<String>(
-                isExpanded: true,
-                hint: const Text('Select Category'),
-                value: selectedCategory,
-                onChanged: (newValue) {
-                  setState(() {
-                    selectedCategory = newValue;
-                    selectedSubCategory = null; // Reset subcategory
-                  });
-                },
-                items: categories.map((category) {
-                  return DropdownMenuItem<String>(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
+              Container(
+                
+                child: DropdownButton<String>(
+                  isExpanded: true,
+                  hint: const Text('Select Category'),
+                  value: selectedCategory,
+                  onChanged: (newValue) {
+                    setState(() {
+                      selectedCategory = newValue;
+                      selectedSubCategory = null; // Reset subcategory
+                    });
+                  },
+                  items: categories.map((category) {
+                    return DropdownMenuItem<String>(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
+                ),
               ),
               const SizedBox(height: 10,),
               if (selectedCategory != null)
@@ -260,6 +278,8 @@ class _UploadImagePageState extends State<UploadImagePage> {
                     child: ListTile(
                       title: const Text('Normal'),
                       leading: Radio<bool>(
+                        activeColor: Colors.blue,
+
                         value: false,
                         groupValue: isPro,
                         onChanged: (bool? value) {
@@ -275,6 +295,8 @@ class _UploadImagePageState extends State<UploadImagePage> {
                       title: const Text('Pro'),
                       leading: Radio<bool>(
                         value: true,
+                        
+                        activeColor: Colors.blue,
                         groupValue: isPro,
                         onChanged: (bool? value) {
                           setState(() {
@@ -286,6 +308,8 @@ class _UploadImagePageState extends State<UploadImagePage> {
                   ),
                 ],
               ),
+             
+             
               SizedBox(
                 height: 10,
               ),
@@ -298,10 +322,14 @@ class _UploadImagePageState extends State<UploadImagePage> {
                       color: Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(
-                      Icons.upload,
-                      size: MediaQuery.of(context).size.height * 0.1,
-                    )),
+                    child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.cloud_upload, size: 50),
+                      SizedBox(height: 8),
+                      Text('Tap to upload image'),
+                    ],
+                  ),),
               ):Container(),
               const SizedBox(height: 16),
               _image != null ? Container(
@@ -309,8 +337,14 @@ class _UploadImagePageState extends State<UploadImagePage> {
                 width: double.infinity,
                 child: Image.file(_image!, fit: BoxFit.contain,)) : Container(),
               const SizedBox(height: 16),
-            ElevatedButton(
-              
+              const Divider(
+
+              ),
+              const SizedBox(height: 10,),
+            MaterialButton(
+              height: 45,
+              minWidth: double.infinity,
+              color: Colors.blue,
                 onPressed:   selectedCategory==null || selectedSubCategory==null ||  _image == null? null: _isUploading ? null : _uploadImage,
                 child: const Text('Upload Image'),
               ),

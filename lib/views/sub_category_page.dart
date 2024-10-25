@@ -44,6 +44,7 @@ class _SubcategoryPageState extends State<SubcategoryPage> {
   final int itemsPerPage = 4;
   bool isLoadingMore = false;
   bool hasMoreData = true;
+  
 
   @override
   void initState() {
@@ -262,18 +263,18 @@ class _SubcategoryPageState extends State<SubcategoryPage> {
                         return GestureDetector(
                           onTap: () {
 
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => FullScreenImagePage(
-                                  imageUrl: currentImageUrls[index],
-                                  isFavorite: false,
-                                  onFavoriteToggle: () {},
-                                  image: newImages!,
-                                  // image: widget.imageUrls,
-                                ),
-                              ),
-                            );
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) => FullScreenImagePage(
+                            //       imageUrl: currentImageUrls[index],
+                            //       isFavorite: false,
+                            //       onFavoriteToggle: () {},
+                            //       image: newImages!,
+                            //       // image: widget.imageUrls,
+                            //     ),
+                            //   ),
+                            // );
                           },
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),

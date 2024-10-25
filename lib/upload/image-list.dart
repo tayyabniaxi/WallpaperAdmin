@@ -1,164 +1,53 @@
 
-// ignore_for_file: no_leading_underscores_for_local_identifiers, use_build_context_synchronously, prefer_const_constructors, library_private_types_in_public_api
 
-import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+// search_image_page.dart
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:image_picker/image_picker.dart';
-// import 'packag
-class SearchImagePage extends StatefulWidget {
+import 'package:new_wall_paper_app/provider/add-image-provider.dart';
+import 'package:provider/provider.dart';
+class SearchImagePage extends StatelessWidget {
   const SearchImagePage({super.key});
 
-  @override
-  _SearchImagePageState createState() => _SearchImagePageState();
-}
-
-class _SearchImagePageState extends State<SearchImagePage> {
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-  File? _newImage;
-  bool _isUpdating = false;
-
-  Future<List<Map<String, dynamic>>> _searchImages(String query) async {
-    try {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('images')
-          .where('name', isGreaterThanOrEqualTo: query)
-          .where('name', isLessThanOrEqualTo: '$query\uf8ff') // Range query
-          .get();
-
-      return querySnapshot.docs
-          .map((doc) => {
-                'name': doc['name'],
-                'url': doc['url'],
-                'docId': doc.id,
-              })
-          .toList();
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Error searching images: $e');
-      return [];
-    }
-  }
-
-  Future<void> _deleteImage(String docId) async {
-    try {
-      await FirebaseFirestore.instance.collection('images').doc(docId).delete();
-      Fluttertoast.showToast(msg: 'Image deleted successfully');
-      setState(() {
-        _searchQuery = _searchController.text;
-      });
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Error deleting image: $e');
-    }
-  }
-
-  Future<File?> _pickNewImage() async {
-    final ImagePicker _picker = ImagePicker();
-    final image = await _picker.pickImage(source: ImageSource.gallery);
-    return image != null ? _newImage = File(image.path) : null;
-  }
-
-  Future<void> _updateImage(String docId, String newName, String oldUrl) async {
-    if (newName.isEmpty) {
-      Fluttertoast.showToast(msg: 'Please enter a new name.');
-      return;
-    }
-
-    setState(() {
-      _isUpdating = true;
-    });
-
-    try {
-      String newUrl = oldUrl;
-
-      if (_newImage != null) {
-        final storageRef = FirebaseStorage.instance.ref().child(
-            'categories/updated/$newName-${DateTime.now().millisecondsSinceEpoch}.jpg');
-        await storageRef.putFile(_newImage!);
-        newUrl = await storageRef.getDownloadURL();
-      }
-
-      await FirebaseFirestore.instance.collection('images').doc(docId).update({
-        'name': newName,
-        'url': newUrl,
-        'uploadTimestamp': DateTime.now().millisecondsSinceEpoch,
-      });
-
-      Fluttertoast.showToast(msg: 'Image updated successfully.');
-      Navigator.of(context).pop();
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Error updating image: $e');
-    } finally {
-      setState(() {
-        _isUpdating = false;
-      });
-    }
-  }
-
-  void _showEditPopup(Map<String, dynamic> imageData) {
-    final TextEditingController _nameController =
+  void _showEditPopup(BuildContext context, Map<String, dynamic> imageData) {
+    final TextEditingController nameController =
         TextEditingController(text: imageData['name']);
-    File? _newImage;
-    bool _isUpdating = false;
 
     showDialog(
       context: context,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
+        return Consumer<SearchImageProvider>(
+          builder: (context, provider, child) {
             return AlertDialog(
               title: const Text('Edit Image'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
-                    controller: _nameController,
+                    controller: nameController,
                     decoration: const InputDecoration(labelText: 'Image Name'),
                   ),
                   const SizedBox(height: 16),
-                  _newImage != null
-                      ? Image.file(_newImage!, height: 100)
+                  provider.newImage != null
+                      ? Image.file(provider.newImage!, height: 100)
                       : Image.network(imageData['url'], height: 100),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () async {
-                      File? selectedImage = await _pickNewImage();
-                      if (selectedImage != null) {
-                        setState(() {
-                          _newImage = selectedImage;
-                        });
-                      } else {
-                        print("No image selected.");
-                      }
-                    },
+                    onPressed: () => provider.pickNewImage(),
                     child: const Text('Change Image'),
                   ),
                 ],
               ),
               actions: [
-                if (_isUpdating) 
+                if (provider.isUpdating)
                   const CircularProgressIndicator()
                 else
                   ElevatedButton(
                     onPressed: () async {
-                      setState(() {
-                        _isUpdating = true;
-                      });
-
-                      await _updateImage(
+                      await provider.updateImage(
                         imageData['docId'],
-                        _nameController.text,
-                        _newImage?.path ?? imageData['url'],
+                        nameController.text,
+                        imageData['url'],
                       );
-
-                      setState(() {
-                        _isUpdating = false;
-                      });
-
-                      Navigator.of(context).pop();
+                      if (context.mounted) Navigator.of(context).pop();
                     },
                     child: const Text('Update'),
                   ),
@@ -170,93 +59,130 @@ class _SearchImagePageState extends State<SearchImagePage> {
     );
   }
 
+  
+
+  
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Search List'),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(60.0),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search by image name',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: () {
-                    setState(() {
-                      _searchQuery = _searchController.text.toLowerCase();
-                    });
-                  },
+      // final provider = Provider.of<SearchImageProvider>(context);
+
+    
+    return Consumer<SearchImageProvider>(
+      builder: (context, provider, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Search List'),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(60.0),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: provider.searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search by image name',
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: () => provider
+                          .updateSearchQuery(provider.searchController.text),
+                    ),
+                  ),
+                  onChanged: provider.updateSearchQuery,
                 ),
               ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value.toLowerCase();
-                });
-              },
             ),
           ),
-        ),
-      ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _searchImages(_searchQuery),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+          body: FutureBuilder<List<Map<String, dynamic>>>(
+            future: provider.searchImages(provider.searchQuery),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
 
-          final images = snapshot.data ?? [];
-          if (images.isEmpty) {
-            return const Center(child: Text('No images found.'));
-          }
+              final images = snapshot.data ?? [];
+              if (images.isEmpty) {
+                return const Center(child: Text('No images found.'));
+              }
 
-          return ListView.separated(
-             separatorBuilder: (context, index) {
-               return SizedBox(height: 10,);
-             },
-            itemCount: images.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                leading: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    images[index]['url'],
-                    width: 50,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                title: Text(images[index]['name']),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: () {
-                        _showEditPopup(images[index]);
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.delete,
-                        color: Colors.red,
+              return ListView.separated(
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 10),
+                itemCount: images.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        images[index]['url'],
+                        width: 50,
+                        fit: BoxFit.cover,
                       ),
-                      onPressed: () {
-                        _deleteImage(images[index]['docId']);
-                      },
                     ),
-                  ],
-                ),
+                    title: Text(images[index]['name']),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _showEditPopup(context, images[index]),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Delete'),
+          content: const Text('Are you sure you want to delete this image?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog on cancel
+              },
+              child: const Text('Cancel'),
+            ),
+            Consumer<SearchImageProvider>(
+              builder: (context, provider, _) {
+                return provider.isDeleting
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : TextButton(
+                        onPressed: () {
+                          provider.deleteImage(images[index]['docId']).then((_) {
+                            Navigator.pop(context); // Close the dialog when done
+                          });
+                        },
+                        child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                      );
+              },
+            ),
+          ],
+        );
+      
+        },
+      );
+                          }
+                        
+                        ),
+                    
+                    
+                      ],
+                    ),
+                  );
+                },
               );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
+  
 }

@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:new_wall_paper_app/models/image-data-model.dart';
 import 'package:new_wall_paper_app/provider/category-provider.dart';
 import 'package:new_wall_paper_app/theme/app_theme.dart';
 import 'package:new_wall_paper_app/utils/app-color.dart';
@@ -19,9 +20,6 @@ class CategoryPage extends StatefulWidget {
 }
 
 class _CategoryPageState extends State<CategoryPage> {
-
- 
-
   late ScrollController _scrollController;
 
   @override
@@ -29,15 +27,14 @@ class _CategoryPageState extends State<CategoryPage> {
     super.initState();
     _scrollController = ScrollController()
       ..addListener(() {
-        if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+        if (_scrollController.position.pixels ==
+            _scrollController.position.maxScrollExtent) {
           Provider.of<CategoryProvider>(context, listen: false).loadMoreItems();
         }
       });
-       final provider = Provider.of<CategoryProvider>(context, listen: false);
-       provider.loadSubCategories(provider.selectedCategory);
+    final provider = Provider.of<CategoryProvider>(context, listen: false);
+    provider.loadSubCategories(provider.selectedCategory);
   }
-
-  
 
   @override
   void dispose() {
@@ -45,17 +42,20 @@ class _CategoryPageState extends State<CategoryPage> {
     super.dispose();
   }
 
- 
-  
-
   @override
   Widget build(BuildContext context) {
     final themeViewModel = Provider.of<ThemeViewModel>(context);
     final categoryProvider = Provider.of<CategoryProvider>(context);
 
-    Color categoryColor = themeViewModel.isDarkMode ? const Color(0xff4C3D90) : const Color(0xffE5D7FF);
-    Color selectedCategoryColor = themeViewModel.isDarkMode ? const Color(0xff7B39FD) : AppColor.categoryLightThemeColorselect;
-    Color subCategoryColor = themeViewModel.isDarkMode ? const Color(0xFF4C3D90) : const Color(0xffF8F5FF);
+    Color categoryColor = themeViewModel.isDarkMode
+        ? const Color(0xff4C3D90)
+        : const Color(0xffE5D7FF);
+    Color selectedCategoryColor = themeViewModel.isDarkMode
+        ? const Color(0xff7B39FD)
+        : AppColor.categoryLightThemeColorselect;
+    Color subCategoryColor = themeViewModel.isDarkMode
+        ? const Color(0xFF4C3D90)
+        : const Color(0xffF8F5FF);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -70,11 +70,19 @@ class _CategoryPageState extends State<CategoryPage> {
                   bool isWallpaper = category == 'Wallpaper';
 
                   Color bgColor = isWallpaper
-                      ? (themeViewModel.isDarkMode ? Colors.white : Colors.black)
-                      : (categoryProvider.selectedCategory == category ? selectedCategoryColor : categoryColor);
+                      ? (themeViewModel.isDarkMode
+                          ? Colors.white
+                          : Colors.black)
+                      : (categoryProvider.selectedCategory == category
+                          ? selectedCategoryColor
+                          : categoryColor);
                   Color textColor = isWallpaper
-                      ? (themeViewModel.isDarkMode ? Colors.black : Colors.white)
-                      : (categoryProvider.selectedCategory == category ? Colors.white : Colors.black);
+                      ? (themeViewModel.isDarkMode
+                          ? Colors.black
+                          : Colors.white)
+                      : (categoryProvider.selectedCategory == category
+                          ? Colors.white
+                          : Colors.black);
 
                   return GestureDetector(
                     onTap: () {
@@ -83,7 +91,8 @@ class _CategoryPageState extends State<CategoryPage> {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 15),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 7, horizontal: 15),
                       margin: const EdgeInsets.symmetric(horizontal: 5),
                       decoration: BoxDecoration(
                         color: bgColor,
@@ -101,7 +110,9 @@ class _CategoryPageState extends State<CategoryPage> {
                           Text(
                             category,
                             style: TextStyle(
-                              color: themeViewModel.isDarkMode ? Colors.black : Colors.white,
+                              color: themeViewModel.isDarkMode
+                                  ? Colors.black
+                                  : Colors.white,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -122,7 +133,8 @@ class _CategoryPageState extends State<CategoryPage> {
             ),
           ),
           SizedBox(height: 7),
-          if (categoryProvider.subCategories.containsKey(categoryProvider.selectedCategory))
+          if (categoryProvider.subCategories
+              .containsKey(categoryProvider.selectedCategory))
             Expanded(
               child: Column(
                 children: [
@@ -133,30 +145,36 @@ class _CategoryPageState extends State<CategoryPage> {
                       child: Padding(
                         padding: const EdgeInsets.only(left: 7),
                         child: Row(
-                          children: categoryProvider.displayedSubCategories.map((subCategory) {
+                          children: categoryProvider.displayedSubCategories
+                              .map((subCategory) {
                             return GestureDetector(
                               onTap: () async {
-                                List<String> images = await categoryProvider.fetchSubcategoryImages(
-                                  categoryProvider.selectedCategory,
-                                  subCategory
-                                );
-                  
+                                List<ImageData> images = await categoryProvider
+                                    .fetchSubcategoryImages(
+                                        categoryProvider.selectedCategory,
+                                      subCategory);
+
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => SubcategoryPage(
-                                      category: categoryProvider.selectedCategory,
+                                      category:
+                                          categoryProvider.selectedCategory,
                                       subcategory: subCategory,
                                       imageUrls: images,
                                       isFavoriteList: [],
-                                      subCategories: categoryProvider.subCategories[categoryProvider.selectedCategory]!,
+                                      subCategories: categoryProvider
+                                              .subCategories[
+                                          categoryProvider.selectedCategory]!,
                                     ),
                                   ),
                                 );
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                margin: const EdgeInsets.symmetric(horizontal: 5),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 4),
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
                                 decoration: BoxDecoration(
                                   color: subCategoryColor,
                                   borderRadius: BorderRadius.circular(20),
@@ -174,15 +192,20 @@ class _CategoryPageState extends State<CategoryPage> {
                                 child: Row(
                                   children: [
                                     Icon(
-                                      categoryProvider.subCategoryIcons[subCategory],
-                                      color: themeViewModel.isDarkMode ? Colors.white : Colors.black,
+                                      categoryProvider
+                                          .subCategoryIcons[subCategory],
+                                      color: themeViewModel.isDarkMode
+                                          ? Colors.white
+                                          : Colors.black,
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
                                       subCategory,
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: themeViewModel.isDarkMode ? Colors.white : Colors.black,
+                                        color: themeViewModel.isDarkMode
+                                            ? Colors.white
+                                            : Colors.black,
                                       ),
                                     ),
                                   ],
@@ -196,38 +219,44 @@ class _CategoryPageState extends State<CategoryPage> {
                   ),
                   const SizedBox(height: 10),
                   Align(
-                      alignment: Alignment.topLeft,
+                    alignment: Alignment.topLeft,
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Padding(
                         padding: const EdgeInsets.only(left: 7),
                         child: Row(
-                          children: categoryProvider.subCategories[categoryProvider.selectedCategory]!
+                          children: categoryProvider
+                              .subCategories[categoryProvider.selectedCategory]!
                               .skip(5)
                               .map((subCategory) {
                             return GestureDetector(
                               onTap: () async {
-                                List<String> images = await categoryProvider.fetchSubcategoryImages(
-                                  categoryProvider.selectedCategory,
-                                  subCategory
-                                );
-                  
+                                List<ImageData> images = await categoryProvider
+                                    .fetchSubcategoryImages(
+                                        categoryProvider.selectedCategory,
+                                        subCategory);
+
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => SubcategoryPage(
-                                      category: categoryProvider.selectedCategory,
+                                      category:
+                                          categoryProvider.selectedCategory,
                                       subcategory: subCategory,
                                       imageUrls: images,
                                       isFavoriteList: const [],
-                                      subCategories: categoryProvider.subCategories[categoryProvider.selectedCategory]!,
+                                      subCategories: categoryProvider
+                                              .subCategories[
+                                          categoryProvider.selectedCategory]!,
                                     ),
                                   ),
                                 );
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                margin: const EdgeInsets.symmetric(horizontal: 5),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 4),
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
                                 decoration: BoxDecoration(
                                   color: subCategoryColor,
                                   borderRadius: BorderRadius.circular(25),
@@ -245,15 +274,20 @@ class _CategoryPageState extends State<CategoryPage> {
                                 child: Row(
                                   children: [
                                     Icon(
-                                      categoryProvider.subCategoryIcons[subCategory],
-                                      color: themeViewModel.isDarkMode ? Colors.white : Colors.black,
+                                      categoryProvider
+                                          .subCategoryIcons[subCategory],
+                                      color: themeViewModel.isDarkMode
+                                          ? Colors.white
+                                          : Colors.black,
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
                                       subCategory,
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: themeViewModel.isDarkMode ? Colors.white : Colors.black,
+                                        color: themeViewModel.isDarkMode
+                                            ? Colors.white
+                                            : Colors.black,
                                       ),
                                     ),
                                   ],
@@ -265,107 +299,149 @@ class _CategoryPageState extends State<CategoryPage> {
                       ),
                     ),
                   ),
-               
-               
                   Divider(color: Colors.grey.shade300, thickness: 1.2),
                   Expanded(
                     child: ListView.builder(
                       controller: _scrollController,
                       itemCount: categoryProvider.displayedSubCategories.length,
                       itemBuilder: (context, index) {
-                        final subCategory = categoryProvider.displayedSubCategories[index];
+                        final subCategory =
+                            categoryProvider.displayedSubCategories[index];
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
                               height: 180,
-                              margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 8),
-                              child: FutureBuilder<List<String>>(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 0, horizontal: 8),
+                              child: FutureBuilder<List<ImageData>>(
                                 future: categoryProvider.fetchSubcategoryImages(
-                                  categoryProvider.selectedCategory,
-                                  subCategory
-                                ),
+                                    categoryProvider.selectedCategory,
+                                    subCategory),
                                 builder: (context, snapshot) {
-                                  if (snapshot.connectionState == ConnectionState.waiting) {
-                                    return const Center(child: CircularProgressIndicator());
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
                                   } else if (snapshot.hasError) {
-                                    return Center(child: Text('Error: ${snapshot.error}'));
-                                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                    return const Center(child: Text('No images available.'));
+                                    return Center(
+                                        child:
+                                            Text('Error: ${snapshot.error}'));
+                                  } else if (!snapshot.hasData ||
+                                      snapshot.data!.isEmpty) {
+                                    return const Center(
+                                        child: Text('No images available.'));
                                   } else {
                                     final images = snapshot.data!;
+
                                     return Column(
                                       children: [
                                         Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8),
                                           child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
                                                 subCategory,
                                                 style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 14
-                                                ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14),
                                               ),
                                               TextButton(
                                                 onPressed: () {
-                                                 Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => SubcategoryPage(
-                                    category: categoryProvider.selectedCategory,
-                                    subcategory: subCategory,
-                                    imageUrls: images,
-                                    isFavoriteList: [],
-                                    subCategories: categoryProvider.subCategories[categoryProvider.selectedCategory]!,
-                                  ),
-                                ),
-                              );
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          SubcategoryPage(
+                                                        category: categoryProvider
+                                                            .selectedCategory,
+                                                        subcategory:
+                                                            subCategory,
+                                                        imageUrls: images,
+                                                        isFavoriteList: [],
+                                                        subCategories: categoryProvider
+                                                                .subCategories[
+                                                            categoryProvider
+                                                                .selectedCategory]!,
+                                                      ),
+                                                    ),
+                                                  );
                                                 },
                                                 child: const Text('View All',
-                                                    style: TextStyle( fontSize: 12,color: AppColor.primaryColor, decoration: TextDecoration.underline,decorationColor: AppColor.primaryColor,)),
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color:
+                                                          AppColor.primaryColor,
+                                                      decoration: TextDecoration
+                                                          .underline,
+                                                      decorationColor:
+                                                          AppColor.primaryColor,
+                                                    )),
                                               ),
                                             ],
                                           ),
                                         ),
+                                        /*
                                         Expanded(
                                           child: ListView.builder(
                                             scrollDirection: Axis.horizontal,
-                                            itemCount:images.length<=5? images.length: 5,
+                                            itemCount: images.length <= 5
+                                                ? images.length
+                                                : 5,
                                             itemBuilder: (context, imgIndex) {
-                                              return Container(
+                                              final imageData =
+                                                  images[imgIndex];
+                                              return
+                                              
+                                               Container(
                                                 width: 90,
-                                                margin: const EdgeInsets.symmetric(
-                                                    horizontal: 4),
-
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 4),
                                                 child: GestureDetector(
-                                                   onTap: (){
-                                                     Navigator.push(
-                                                       context,
-                                                       MaterialPageRoute(
-                                                         builder: (context) => FullScreenImagePage(
-
-                                                           imageUrl: images[imgIndex],
-                                                           isFavorite: false,
-                                                           onFavoriteToggle: () {},
-                                                           image: images,
-
-                                                         ),
-                                                       ),
-                                                     );
-                                                   },
+                                                  onTap: () async {
+                                                        Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            FullScreenImagePage(
+                                                       
+                                                          category: categoryProvider
+                                                              .selectedCategory,
+                                                          subcategories:
+                                                              categoryProvider
+                                                                  .selectedSubCategory,
+                                                          imageUrl:
+                                                              imageData.url,
+                                                          timeStamp: imageData
+                                                              .timestamp,
+                                                          desc: imageData
+                                                              .description,
+                                                          title:
+                                                              imageData.title,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
                                                   child: ClipRRect(
-                                                    borderRadius: BorderRadius.circular(4),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            4),
                                                     child: CachedNetworkImage(
-                                                      imageUrl: images[imgIndex],
+                                                      imageUrl: imageData.url,
                                                       fit: BoxFit.cover,
-                                                      placeholder: (context, url) =>
-                                                          Container(
-                                                            color: Colors.grey[300],
-                                                          ),
-                                                      errorWidget: (context, url, error) =>
-                                                      const Icon(Icons.error),
+                                                      placeholder:
+                                                          (context, url) =>
+                                                              Container(
+                                                        color: Colors.grey[300],
+                                                      ),
+                                                      errorWidget: (context,
+                                                              url, error) =>
+                                                          const Icon(
+                                                              Icons.error),
                                                     ),
                                                   ),
                                                 ),
@@ -373,6 +449,53 @@ class _CategoryPageState extends State<CategoryPage> {
                                             },
                                           ),
                                         ),
+                                   */
+                                  Expanded(
+  child: ListView.builder(
+    scrollDirection: Axis.horizontal,
+    itemCount: images.length <= 5 ? images.length : 5,
+    itemBuilder: (context, imgIndex) {
+      final imageData = images[imgIndex];
+      return Container(
+        width: 90,
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        child: GestureDetector(
+          onTap: () async {
+            // Get the selected subcategory from the provider
+            final selectedSubCategory = categoryProvider.selectedSubCategory;
+
+            // Navigate to the full-screen image page with the necessary data
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FullScreenImagePages(
+                  category: categoryProvider.selectedCategory,
+                  subcategories: selectedSubCategory, // Pass selected subcategory
+                  imageUrl: imageData.url,
+                  timeStamp: imageData.timestamp,
+                  desc: imageData.description,
+                  title: imageData.title,
+                ),
+              ),
+            );
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: CachedNetworkImage(
+              imageUrl: imageData.url,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => Container(
+                color: Colors.grey[300],
+              ),
+              errorWidget: (context, url, error) => const Icon(Icons.error),
+            ),
+          ),
+        ),
+      );
+    },
+  ),
+),
+
                                       ],
                                     );
                                   }
@@ -384,8 +507,6 @@ class _CategoryPageState extends State<CategoryPage> {
                       },
                     ),
                   ),
-
-
                 ],
               ),
             ),
@@ -393,8 +514,44 @@ class _CategoryPageState extends State<CategoryPage> {
       ),
     );
   }
-
 }
 
 
+class FullScreenImagePages extends StatelessWidget {
+  final String category;
+  final String subcategories;
+  final String imageUrl;
+  final int timeStamp;
+  final String desc;
+  final String title;
 
+  FullScreenImagePages({
+    required this.category,
+    required this.subcategories,
+    required this.imageUrl,
+    required this.timeStamp,
+    required this.desc,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+      ),
+      body: Center(
+        child: Column(
+          children: [
+            // Image.network(imageUrl),
+            SizedBox(height: 10),
+            Text('Category: $category'),
+            Text('Subcategory: $subcategories'),
+            Text('Description: $desc'),
+            Text('Timestamp: ${DateTime.fromMillisecondsSinceEpoch(timeStamp)}'),
+          ],
+        ),
+      ),
+    );
+  }
+}

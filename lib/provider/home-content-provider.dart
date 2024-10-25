@@ -41,48 +41,56 @@ class HomeState extends ChangeNotifier {
       fetchCategoryImageUrls(category, refresh: true);
     }
   }
+Future<void> fetchCategoryImageUrls(String category, {bool refresh = false}) async {
+  if (_isLoading) return;
 
-  Future<void> fetchCategoryImageUrls(String category, {bool refresh = false}) async {
-    if (_isLoading) return;
+  _isLoading = true;
+  notifyListeners();
 
-    _isLoading = true;
+  if (refresh) {
+    _currentImages = [];
+    _hasMore = true;
+  }
+
+  if (!_hasMore) {
+    _isLoading = false;
     notifyListeners();
+    return;
+  }
 
-    if (refresh) {
-      _currentImages = [];
-      _hasMore = true;
-    }
+  try {
+    final doc = await firestore.collection('categories').doc(category).get();
+    if (doc.exists) {
+      List<dynamic> imagesData = doc['images'] ?? [];
+      
+      List<String> allImages = imagesData
+          .where((imageMap) =>
+              imageMap is Map<String, dynamic> &&
+              imageMap.containsKey('url') &&
+              imageMap['url'] is String)
+          .map<String>((imageMap) => imageMap['url'] as String)
+          .toList();
 
-    if (!_hasMore) {
-      _isLoading = false;
-      notifyListeners();
-      return;
-    }
+      int startIndex = _currentImages.length;
+      int endIndex = startIndex + pageSize;
 
-    try {
-      final doc = await firestore.collection('categories').doc(category).get();
-      if (doc.exists) {
-        List<String> allImages = List<String>.from(doc['images'] ?? []);
-        int startIndex = _currentImages.length;
-        int endIndex = startIndex + pageSize;
-        
-        if (endIndex > allImages.length) {
-          endIndex = allImages.length;
-          _hasMore = false;
-        }
-        
-        List<String> newImages = allImages.sublist(startIndex, endIndex);
-        _currentImages = [..._currentImages, ...newImages];
-      } else {
+      if (endIndex > allImages.length) {
+        endIndex = allImages.length;
         _hasMore = false;
       }
-    } catch (e) {
-      print('Error fetching images: $e');
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+
+      List<String> newImages = allImages.sublist(startIndex, endIndex);
+      _currentImages = [..._currentImages, ...newImages];
+    } else {
+      _hasMore = false;
     }
+  } catch (e) {
+    print('Error fetching images: $e');
+  } finally {
+    _isLoading = false;
+    notifyListeners();
   }
+}
 
   Future<bool> isImageFavorite(String url) async {
     final favRef = firestore.collection('userFavorites').where('url', isEqualTo: url);

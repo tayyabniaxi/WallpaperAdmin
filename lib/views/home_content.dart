@@ -16,9 +16,7 @@ class HomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => HomeState(),
-      child: const HomeContentView(),
+    return  HomeContentView(
     );
   }
 }
@@ -131,17 +129,17 @@ class HomeContentView extends StatelessWidget {
                             onTap: () async {
                               bool isFavorite = await homeState.isImageFavorite(
                                   homeState.currentImages[index]);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => FullScreenImagePage(
-                                    imageUrl: homeState.currentImages[index],
-                                    isFavorite: isFavorite,
-                                    onFavoriteToggle: () {},
-                                    image: const [],
-                                  ),
-                                ),
-                              );
+                              // Navigator.push(
+                              //   context,
+                              //   MaterialPageRoute(
+                              //     builder: (context) => FullScreenImagePage(
+                              //       imageUrl: homeState.currentImages[index],
+                              //       isFavorite: isFavorite,
+                              //       onFavoriteToggle: () {},
+                              //       image: const [],
+                              //     ),
+                              //   ),
+                              // );
                             },
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12),

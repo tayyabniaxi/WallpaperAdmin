@@ -1,10 +1,10 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:new_wall_paper_app/models/image-data-model.dart';
 
 class CategoryProvider extends ChangeNotifier {
-
-  
-
   // Variables
   final List<String> categories = [
     'Wallpaper',
@@ -68,8 +68,6 @@ class CategoryProvider extends ChangeNotifier {
     ],
   };
 
-  
-
   final Map<String, IconData> subCategoryIcons = {
     'AI': Icons.memory,
     'Gadgets': Icons.devices,
@@ -114,23 +112,32 @@ class CategoryProvider extends ChangeNotifier {
   };
 
   String _selectedCategory = 'Technology';
+  String _selectedSubCategory = ''; 
   final int itemsPerPage = 3;
   int _currentPage = 0;
   List<String> _displayedSubCategories = [];
 
   // Getters
   String get selectedCategory => _selectedCategory;
+  String get selectedSubCategory => _selectedSubCategory; 
   int get currentPage => _currentPage;
   List<String> get displayedSubCategories => _displayedSubCategories;
 
   // Methods
   void loadSubCategories(String category) {
     _selectedCategory = category;
+    _selectedSubCategory = ''; 
     _displayedSubCategories = [];
     _currentPage = 0;
     loadMoreItems();
     notifyListeners();
   }
+
+  void selectSubCategory(String subcategory) {
+    _selectedSubCategory = subcategory;
+    notifyListeners();
+  }
+
 
   void loadMoreItems() {
     if (_currentPage * itemsPerPage >= subCategories[_selectedCategory]!.length) {
@@ -148,7 +155,7 @@ class CategoryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<String>> fetchSubcategoryImages(String category, String subcategory) async {
+  Future<List<ImageData>> fetchSubcategoryImages(String category, String subcategory) async {
     final doc = await FirebaseFirestore.instance
         .collection('categories')
         .doc(category)
@@ -158,10 +165,10 @@ class CategoryProvider extends ChangeNotifier {
 
     if (doc.exists) {
       List<dynamic> imagesData = doc.data()?['images'] ?? [];
-      return imagesData.map((imageMap) => imageMap['url'] as String).toList();
+      return imagesData.map((imageMap) => ImageData.fromMap(imageMap)).toList();
     }
     return [];
   }
 
-  
+
 }

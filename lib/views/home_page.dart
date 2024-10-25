@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:new_wall_paper_app/assets/app_assets.dart';
+import 'package:new_wall_paper_app/upload/add-image.dart';
 import 'package:new_wall_paper_app/views/home_content.dart';
 import 'package:new_wall_paper_app/views/category_page.dart';
 import 'package:provider/provider.dart';
@@ -33,6 +34,13 @@ class _HomePageState extends State<HomePage> {
     final isDarkMode = themeViewModel.isDarkMode;
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.blue,
+        child: Icon(Icons.add, color: Colors.white,size: 45,),
+        // child: Text("ADD +", style: TextStyle(color: Colors.white),),
+        onPressed: (){
+        Navigator.push(context, MaterialPageRoute(builder: (_)=>UploadImagePage()));
+      }),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor ??

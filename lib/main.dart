@@ -62,12 +62,16 @@
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:new_wall_paper_app/provider/add-home-content-provider.dart';
+import 'package:new_wall_paper_app/provider/add-image-provider.dart';
 import 'package:new_wall_paper_app/provider/category-provider.dart';
 import 'package:new_wall_paper_app/provider/categoryViewmodel-provider.dart';
 import 'package:new_wall_paper_app/provider/favorite_toggle.dart';
 import 'package:new_wall_paper_app/provider/home-content-provider.dart';
 import 'package:new_wall_paper_app/provider/search-provider.dart';
+import 'package:new_wall_paper_app/provider/update-image-provider.dart';
 import 'package:new_wall_paper_app/upload/add-image.dart';
+import 'package:new_wall_paper_app/upload/image-list.dart';
 import 'package:provider/provider.dart';
 import 'viewmodels/subcategory_view_model.dart';
 import 'viewmodels/theme_view_model.dart';
@@ -90,6 +94,9 @@ void main() async {
        ChangeNotifierProvider(create: (_) => SearchState()),
        ChangeNotifierProvider(create: (_) => HomeState()),
        ChangeNotifierProvider(create: (_) => CategoryProvider()),
+       ChangeNotifierProvider(create: (_) => SearchImageProvider()),
+       ChangeNotifierProvider(create: (_) => UpdateImageProvider()),
+       ChangeNotifierProvider(create: (_) => AddHomeContentProvider()),
     ],
     child: const MyApp()));
 
@@ -126,7 +133,8 @@ class MyApp extends StatelessWidget {
               title: 'Wallpaper App',
               theme: themeViewModel.currentTheme,
              
-              home: UploadImagePage(),
+              // home: SearchImagePage(),
+              home: HomePage(),
             ),
           );
         },
